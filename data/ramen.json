@@ -1,7 +1,7 @@
 {
   "meta": {
-    "last_scan": "2026-09-06 01:34",
-    "data_updated": "2026-09-06 01:34",
+    "last_scan": "2026-09-06 04:46",
+    "data_updated": "2026-09-06 04:46",
     "mode": "live",
     "version": "0.6",
     "source_count": 5,
@@ -18,7 +18,7 @@
       "name": "牡蠣と昆布のらー麺専門店 MANNISH",
       "area": "新潟市西区",
       "summary": "にいがた速報でリニューアル情報を検知しました。詳細は情報源で確認できます。",
-      "detected_at": "2026-09-06T01:34:07+09:00",
+      "detected_at": "2026-09-06T04:46:00+09:00",
       "published_at": null,
       "tags": [
         "RENEWAL",
@@ -45,7 +45,7 @@
       "name": "九州ラーメン マルシチラーメンセンター",
       "area": "新潟市東区",
       "summary": "にいがた速報で閉店情報を検知しました。詳細は情報源で確認できます。",
-      "detected_at": "2026-09-06T01:34:06+09:00",
+      "detected_at": "2026-09-06T04:45:59+09:00",
       "published_at": null,
       "tags": [
         "CLOSED",
