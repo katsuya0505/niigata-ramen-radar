@@ -1,0 +1,53 @@
+{
+  "sources": [
+    {
+      "id": "gata21",
+      "name": "にいがた速報",
+      "base_url": "https://gata21.jp/",
+      "start_urls": [
+        "https://gata21.jp/openclose/",
+        "https://gata21.jp/topics/"
+      ],
+      "max_detail_pages": 12
+    },
+    {
+      "id": "niikei",
+      "name": "にいがた経済新聞",
+      "base_url": "https://www.niikei.jp/",
+      "start_urls": [
+        "https://www.niikei.jp/category/new-store/"
+      ],
+      "max_detail_pages": 12
+    },
+    {
+      "id": "prtimes",
+      "name": "PR TIMES",
+      "base_url": "https://prtimes.jp/",
+      "start_urls": [
+        "https://prtimes.jp/topics/keywords/%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3",
+        "https://prtimes.jp/topics/keywords/%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3%E5%BA%97"
+      ],
+      "max_detail_pages": 12,
+      "require_niigata_on_detail": true
+    },
+    {
+      "id": "komachi",
+      "name": "Komachi Web",
+      "base_url": "https://www.week.co.jp/",
+      "start_urls": [
+        "https://www.week.co.jp/postpic/"
+      ],
+      "max_detail_pages": 12
+    },
+    {
+      "id": "025",
+      "name": "025 | ゼロニィゴ",
+      "base_url": "https://025.teny.co.jp/",
+      "start_urls": [
+        "https://025.teny.co.jp/gourmet/special_ramen",
+        "https://025.teny.co.jp/gourmet"
+      ],
+      "max_detail_pages": 12
+    }
+  ]
+}

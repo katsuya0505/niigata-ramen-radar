@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="新潟のラーメンの「いま」を3秒で。新店・限定・話題をレーダー形式で表示する実験的ローカルメディア。" />
+  <title>新潟ラーメンレーダー | NIIGATA RAMEN RADAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+
+  <header class="site-header">
+    <div class="brand-wrap">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="pulse"></span>
+        <span class="radar-line"></span>
+      </div>
+      <div>
+        <p class="eyebrow">NIIGATA RAMEN RADAR</p>
+        <h1>新潟ラーメンレーダー</h1>
+      </div>
+    </div>
+    <div class="status">
+      <span class="status-dot"></span>
+      <span>RADAR ONLINE</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="kicker">新潟のラーメンの「いま」を、3秒で。</p>
+        <h2>読むより、<br><span>見つける。</span></h2>
+        <p class="hero-text">
+          新店、限定麺、話題の一杯。新潟のラーメン情報を
+          「記事」ではなく「動き」として捉える実験的レーダーです。
+        </p>
+      </div>
+
+      <div class="radar-panel" aria-label="レーダー状況">
+        <div class="radar">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="ring r3"></div>
+          <div class="axis x"></div>
+          <div class="axis y"></div>
+          <div class="sweep"></div>
+          <span class="blip b1"></span>
+          <span class="blip b2"></span>
+          <span class="blip b3"></span>
+        </div>
+        <div class="scan-meta">
+          <span>LAST SCAN</span>
+          <strong id="lastScan">--</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-grid">
+      <article class="metric-card">
+        <span>24H DETECTED</span>
+        <strong id="count24">0</strong>
+        <small>過去24時間の検知</small>
+      </article>
+      <article class="metric-card">
+        <span>NEW OPEN</span>
+        <strong id="countNew">0</strong>
+        <small>新店・開店情報</small>
+      </article>
+      <article class="metric-card">
+        <span>LIMITED</span>
+        <strong id="countLimited">0</strong>
+        <small>限定・期間情報</small>
+      </article>
+      <article class="metric-card">
+        <span>BUZZ</span>
+        <strong id="countBuzz">0</strong>
+        <small>話題・注目情報</small>
+      </article>
+    </section>
+
+    <section class="toolbar">
+      <div class="filters" role="tablist" aria-label="情報フィルター">
+        <button class="filter active" data-filter="all">すべて</button>
+        <button class="filter" data-filter="new">新店</button>
+        <button class="filter" data-filter="limited">限定</button>
+        <button class="filter" data-filter="buzz">話題</button>
+      </div>
+      <div class="updated">
+        <span>自動表示データ：</span>
+        <strong id="dataUpdated">--</strong>
+      </div>
+    </section>
+
+    <section class="feed-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">LIVE FEED</p>
+          <h3>最近検知した情報</h3>
+        </div>
+        <p class="subtle">※ 現在はデモデータです。自動収集機能は次段階で接続できます。</p>
+      </div>
+      <div id="feed" class="feed-grid" aria-live="polite"></div>
+      <div id="emptyState" class="empty-state" hidden>該当する情報はありません。</div>
+    </section>
+
+    <section class="about">
+      <p class="eyebrow">ABOUT</p>
+      <h3>長い記事はありません。</h3>
+      <p>
+        「新潟に何ができた？」「限定は何？」「今どこが動いている？」
+        その答えを短く、速く、見つけやすく。情報源へのリンクを残しながら、
+        街の変化をデータとして蓄積することを目指します。
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <strong>NIIGATA RAMEN RADAR</strong>
+      <span>Experimental Local Media</span>
+    </div>
+    <small>© 2026 NIIGATA RAMEN RADAR</small>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

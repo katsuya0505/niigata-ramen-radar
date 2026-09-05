@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "last_scan": "2026-09-06 00:10",
+    "data_updated": "2026-09-06 00:10",
+    "mode": "demo"
+  },
+  "items": [
+    {
+      "id": 1,
+      "type": "new",
+      "name": "麺屋 RADAR",
+      "area": "新潟市中央区",
+      "summary": "デモ用の新店情報です。実運用では公開Web情報や公式情報から取得した内容をここへ自動登録します。",
+      "detected_at": "2026-09-06T00:03:00+09:00",
+      "tags": [
+        "新店",
+        "醤油",
+        "中央区"
+      ],
+      "source_url": "https://www.google.com/search?q=%E6%96%B0%E6%BD%9F+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3",
+      "map_url": "https://www.google.com/maps/search/%E6%96%B0%E6%BD%9F%E5%B8%82+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3"
+    },
+    {
+      "id": 2,
+      "type": "limited",
+      "name": "らぁ麺 SAMPLE",
+      "area": "新潟市西区",
+      "summary": "秋限定メニューを検知した想定のサンプルです。限定・期間・季節メニューなどを分類して表示します。",
+      "detected_at": "2026-09-05T22:41:00+09:00",
+      "tags": [
+        "限定",
+        "味噌",
+        "西区"
+      ],
+      "source_url": "https://www.google.com/search?q=%E6%96%B0%E6%BD%9F+%E9%99%90%E5%AE%9A+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3",
+      "map_url": "https://www.google.com/maps/search/%E6%96%B0%E6%BD%9F%E5%B8%82%E8%A5%BF%E5%8C%BA+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3"
+    },
+    {
+      "id": 3,
+      "type": "buzz",
+      "name": "中華そば DEMO",
+      "area": "長岡市",
+      "summary": "複数の公開情報で話題になった店舗を想定したデモカードです。将来は検知件数や新着頻度から注目度を算出できます。",
+      "detected_at": "2026-09-05T21:18:00+09:00",
+      "tags": [
+        "話題",
+        "生姜醤油",
+        "長岡"
+      ],
+      "source_url": "https://www.google.com/search?q=%E9%95%B7%E5%B2%A1+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3",
+      "map_url": "https://www.google.com/maps/search/%E9%95%B7%E5%B2%A1+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3"
+    },
+    {
+      "id": 4,
+      "type": "new",
+      "name": "RAMEN LAB",
+      "area": "新潟市東区",
+      "summary": "開店予定を検知した想定のデモです。開店日が確定していない場合は「予定」「未確認」といった状態も持たせられます。",
+      "detected_at": "2026-09-05T18:32:00+09:00",
+      "tags": [
+        "開店予定",
+        "東区"
+      ],
+      "source_url": "https://www.google.com/search?q=%E6%96%B0%E6%BD%9F%E5%B8%82%E6%9D%B1%E5%8C%BA+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3+%E9%96%8B%E5%BA%97",
+      "map_url": "https://www.google.com/maps/search/%E6%96%B0%E6%BD%9F%E5%B8%82%E6%9D%B1%E5%8C%BA+%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3"
+    }
+  ]
+}
