@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NIIGATA RAMEN RADAR collector v0.3
+NIIGATA RAMEN RADAR collector v0.4
 
 目的:
 「ラーメン記事を集める」のではなく、
@@ -184,7 +184,7 @@ def extract_jsonld(soup: BeautifulSoup) -> tuple[Optional[str], Optional[str]]:
                 stack.extend(x)
     return headline, published
 
-def page_title_and_text(html: str) -> tuple[str, str, Optional[str]]:
+def page_title_and_text(html: str) -> tuple[str, str, Optional[str], Optional[str]]:
     soup = BeautifulSoup(html, "html.parser")
     jsonld_title, published = extract_jsonld(soup)
 
@@ -192,13 +192,21 @@ def page_title_and_text(html: str) -> tuple[str, str, Optional[str]]:
     h1_text = clean_text(h1.get_text(" ", strip=True)) if h1 else ""
     title_tag = clean_text(soup.title.get_text(" ", strip=True)) if soup.title else ""
 
-    # json-ldが媒体名だけなどの場合、h1を優先
     choices = [h1_text, jsonld_title or "", title_tag]
     choices = [x for x in choices if x and not looks_mojibake(x)]
     title = max(choices, key=len) if choices else ""
 
     body_text = clean_text(soup.get_text(" ", strip=True))
-    return title, body_text[:25000], published
+
+    image_url = None
+    og = soup.find("meta", attrs={"property": "og:image"})
+    if og and og.get("content"):
+        image_url = urljoin("https://" + urlparse("https://dummy.invalid").netloc, og.get("content"))
+    # urljoin above is only useful for absolute URLs; for relative image URLs resolve later.
+    if og and og.get("content"):
+        image_url = og.get("content").strip()
+
+    return title, body_text[:25000], published, image_url
 
 def listing_candidates(session: requests.Session, source: dict) -> list[Candidate]:
     found: dict[str, Candidate] = {}
@@ -249,13 +257,11 @@ def is_niigata_related(text: str) -> bool:
 
 def change_type(title: str, body_head: str) -> Optional[str]:
     """
-    v0.3ではタイトルを最優先。
-    本文だけに「オープン」があっても、新店とは判定しない。
+    v0.4: 原則タイトルだけで分類。
+    本文中にたまたま「閉店」「オープン」があるだけでは採用しない。
     """
     t = clean_text(title)
-    body = clean_text(body_head[:1800])
 
-    # 優先順位：閉店 > 移転 > リニューアル > 開店予定 > 開店 > 限定
     if contains_any(t, CLOSE_WORDS):
         return "closed"
     if contains_any(t, RELOCATION_WORDS):
@@ -268,16 +274,6 @@ def change_type(title: str, body_head: str) -> Optional[str]:
         return "opening"
     if contains_any(t, LIMITED_WORDS):
         return "limited"
-
-    # タイトルに変化語がなくても、本文冒頭で明確な閉店・移転・予定がある場合のみ採用
-    for typ, words in [
-        ("closed", CLOSE_WORDS),
-        ("relocation", RELOCATION_WORDS),
-        ("renewal", RENEWAL_WORDS),
-        ("opening_soon", OPENING_SOON_WORDS),
-    ]:
-        if contains_any(body, words):
-            return typ
 
     return None
 
@@ -306,10 +302,9 @@ def extract_area(text: str) -> str:
 
 def quoted_chunks(title: str) -> list[str]:
     patterns = [
-        r"「([^」]{2,60})」",
-        r"『([^』]{2,60})』",
-        r"“([^”]{2,60})”",
-        r"【([^】]{2,60})】",
+        r"「([^」]{2,80})」",
+        r"『([^』]{2,80})』",
+        r"“([^”]{2,80})”",
     ]
     out = []
     for pat in patterns:
@@ -318,56 +313,54 @@ def quoted_chunks(title: str) -> list[str]:
 
 def score_shop_candidate(c: str) -> int:
     score = 0
-    if len(c) <= 35:
+    if 2 <= len(c) <= 45:
         score += 10
-    if contains_any(c, ["店", "麺", "亭", "家", "食堂", "そば", "RAMEN", "Ramen"]):
+    if contains_any(c, ["ラーメン", "らー麺", "らーめん", "中華そば", "中華蕎麦", "麺", "亭", "家", "食堂", "そば", "RAMEN", "Ramen", "MANNISH"]):
+        score += 35
+    if re.search(r"(本店|支店|店|専門店)$", c):
         score += 25
-    if re.search(r"(本店|支店|店)$", c):
-        score += 20
     if contains_any(c, LISTICLE_WORDS):
-        score -= 40
-    if re.search(r"\d+\s*選", c):
         score -= 60
-    if contains_any(c, ["新潟市", "長岡市", "駅近く", "周辺"]):
-        score -= 15
+    if re.search(r"\d+\s*選", c):
+        score -= 80
+    if contains_any(c, ["新潟市", "長岡市", "駅近く", "周辺", "上半期版", "下半期版", "今年", "今しか"]):
+        score -= 30
     return score
 
 def extract_shop_name(title: str) -> str:
-    # 1. 引用符内を最優先
+    # 1. 引用符内の「ラーメン店らしい」文字列を最優先。
     chunks = quoted_chunks(title)
     scored = [(score_shop_candidate(c), c) for c in chunks]
     scored = [x for x in scored if x[0] > 0]
     if scored:
-        scored.sort(reverse=True)
-        return scored[0][1][:50]
+        scored.sort(key=lambda x: (x[0], len(x[1])), reverse=True)
+        return scored[0][1][:60]
 
-    # 2. 「地域『店名』」形式がなくても、末尾に店舗名があるケース
-    # 例: / 新潟市西区「万人家 大学前店」
+    # 2. タイトル中の「ラーメン店『○○』」など
+    m = re.search(r"(?:ラーメン店|らーめん店|中華そば店|専門店)[^『「]{0,20}[『「]([^』」]{2,80})[』」]", title)
+    if m:
+        return clean_text(m.group(1))[:60]
+
+    # 3. 地域 + 引用符の末尾
     m = re.search(
-        r"(?:新潟市(?:中央|西|東|北|南|江南|秋葉|西蒲)区|長岡市|上越市|三条市|燕市|新発田市|柏崎市|南魚沼市)[\s　]*[「『]?([^」』｜|/]{2,50})[」』]?\s*$",
+        r"(?:新潟市(?:中央|西|東|北|南|江南|秋葉|西蒲)区|長岡市|上越市|三条市|燕市|新発田市|柏崎市|南魚沼市).*?[「『]([^」』]{2,80})[」』]",
         title
     )
     if m:
         candidate = clean_text(m.group(1))
         if score_shop_candidate(candidate) > 0:
-            return candidate
+            return candidate[:60]
 
-    # 3. 「○○がオープン」「○○閉店」など
-    parts = re.split(
-        r"(?:が|、|！|!|｜|\||/|-).{0,5}(?:オープン|OPEN|開店|閉店|移転|リニューアル)",
-        title,
-        maxsplit=1
-    )
-    if parts:
-        candidate = clean_text(parts[0])
+    # 4. 「○○が閉店/オープン/移転/リニューアル」
+    m = re.search(r"(.{2,70}?)(?:が|を)?(?:閉店|オープン|OPEN|開店|移転|リニューアル)", title, re.I)
+    if m:
+        candidate = clean_text(m.group(1))
         candidate = re.sub(r"^[【〖].+?[】〗]\s*", "", candidate)
-        if 2 <= len(candidate) <= 50 and not contains_any(candidate, LISTICLE_WORDS):
-            return candidate
+        candidate = re.split(r"[：:。！？!?\|｜/]", candidate)[-1].strip()
+        if score_shop_candidate(candidate) > 0:
+            return candidate[:60]
 
-    # 最後の保険
-    x = re.sub(r"^[【〖].+?[】〗]\s*", "", title)
-    x = re.split(r"[！!｜|/]", x)[0]
-    return clean_text(x)[:50] or "店舗情報"
+    return ""
 
 def normalize_key(name: str) -> str:
     x = name.lower()
@@ -414,7 +407,7 @@ def collect() -> list[dict]:
             if not html:
                 continue
 
-            page_title, body_text, published = page_title_and_text(html)
+            page_title, body_text, published, image_url = page_title_and_text(html)
             title = page_title or c.title
             if looks_mojibake(title):
                 print(f"  - skip mojibake: {c.url}")
@@ -442,7 +435,7 @@ def collect() -> list[dict]:
                 continue
 
             shop = extract_shop_name(title)
-            if looks_mojibake(shop):
+            if not shop or looks_mojibake(shop):
                 continue
 
             area = extract_area(title + " " + body_text[:2500])
@@ -458,6 +451,7 @@ def collect() -> list[dict]:
                 "type": typ,
                 "published_at": published,
                 "detected_at": detected,
+                "image_url": image_url,
             })
             print(f"  + {shop} [{typ}]")
 
@@ -524,6 +518,7 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
                 f"{source_count} SOURCES" if source_count > 1 else lead["source_name"]
             ],
             "source_url": lead["source_url"],
+            "image_url": lead.get("image_url"),
             "sources": source_links,
             "source_count": source_count,
             "confidence": confidence,
@@ -596,7 +591,7 @@ def merge_with_existing(new_items: list[dict], keep: int = 80) -> dict:
             "last_scan": stamp,
             "data_updated": stamp,
             "mode": "live",
-            "version": "0.3",
+            "version": "0.4",
             "source_count": 5,
             "detected_this_scan": len(new_items),
             "item_count": len(items),
@@ -611,7 +606,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    print("NIIGATA RAMEN RADAR collector v0.3")
+    print("NIIGATA RAMEN RADAR collector v0.4")
     print("POLICY: CHANGE ONLY")
     new_items = collect()
     result = merge_with_existing(new_items, keep=args.keep)
