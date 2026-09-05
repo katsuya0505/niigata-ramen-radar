@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NIIGATA RAMEN RADAR collector v0.4
+NIIGATA RAMEN RADAR collector v0.5
 
 目的:
 「ラーメン記事を集める」のではなく、
@@ -85,7 +85,8 @@ RENEWAL_WORDS = [
 LISTICLE_WORDS = [
     "おすすめ", "まとめ", "選", "厳選", "特集", "食べ比べ",
     "食べるなら", "絶品", "人気店", "必見", "名店",
-    "ランキング", "活動日誌", "食べ歩き"
+    "ランキング", "活動日誌", "食べ歩き", "スタンプラリー",
+    "祭り", "お祭り", "○杯", "杯を紹介"
 ]
 
 # タイトルに変化語がなくても、本文だけでOPENと誤判定しないため、
@@ -279,19 +280,22 @@ def change_type(title: str, body_head: str) -> Optional[str]:
 
 def is_generic_article(title: str, typ: Optional[str]) -> bool:
     """
-    まとめ記事・紹介記事は基本除外。
-    ただしタイトル自体に強い変化語があれば採用。
+    v0.5: 店舗単体の変化ではない「まとめ・特集・スタンプラリー・複数杯紹介」を除外。
+    強い変更イベントでも、タイトルが明らかな企画記事なら掲載しない。
     """
-    if not contains_any(title, LISTICLE_WORDS):
-        return False
+    t = clean_text(title)
 
-    if typ in {"closed", "relocation", "renewal", "opening_soon"}:
-        return False
-
-    # 「おすすめ5選」「まとめ5選」などは除外
-    if re.search(r"\d+\s*選", title):
+    if re.search(r"\d+\s*(?:選|杯|店)", t):
         return True
-    return True
+    if contains_any(t, [
+        "おすすめ", "まとめ", "厳選", "特集", "ランキング",
+        "スタンプラリー", "食べ歩き", "活動日誌", "お祭り", "祭り"
+    ]):
+        return True
+    if "人気ラーメン店が贈る" in t:
+        return True
+
+    return False
 
 def extract_area(text: str) -> str:
     for pat in AREA_PATTERNS:
@@ -408,6 +412,8 @@ def collect() -> list[dict]:
                 continue
 
             page_title, body_text, published, image_url = page_title_and_text(html)
+            if image_url:
+                image_url = urljoin(c.url, image_url)
             title = page_title or c.title
             if looks_mojibake(title):
                 print(f"  - skip mojibake: {c.url}")
@@ -524,7 +530,8 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
             "confidence": confidence,
             "map_url": "https://www.google.com/maps/search/" + requests.utils.quote(
                 f"{lead['name']} {lead['area']}"
-            )
+            ),
+            "extractor_version": "0.5"
         })
 
     merged.sort(
@@ -552,22 +559,26 @@ def load_existing() -> dict:
         return {"meta": {}, "items": []}
 
 def merge_with_existing(new_items: list[dict], keep: int = 80) -> dict:
+    """
+    v0.5 migration:
+    v0.3/v0.4の誤検知を持ち越さないため、v0.5生成済みデータだけを履歴として保持する。
+    初回v0.5実行時には古いカードが自動的に消える。
+    """
     old = load_existing()
 
     existing = {}
     for x in old.get("items", []):
         if is_demo_item(x):
             continue
+        if x.get("extractor_version") != "0.5":
+            continue
         if x.get("id") is None:
             continue
-
-        # v0.3からは“変化情報”以外の古いbuzz/誤判定を原則捨てる
         if x.get("type") not in {
             "opening", "opening_soon", "limited",
             "closed", "relocation", "renewal"
         }:
             continue
-
         existing[str(x["id"])] = x
 
     for item in new_items:
@@ -591,11 +602,12 @@ def merge_with_existing(new_items: list[dict], keep: int = 80) -> dict:
             "last_scan": stamp,
             "data_updated": stamp,
             "mode": "live",
-            "version": "0.4",
+            "version": "0.5",
             "source_count": 5,
             "detected_this_scan": len(new_items),
             "item_count": len(items),
-            "policy": "change-only"
+            "policy": "change-only",
+            "photos": "og-image-reference"
         },
         "items": items
     }
@@ -606,7 +618,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    print("NIIGATA RAMEN RADAR collector v0.4")
+    print("NIIGATA RAMEN RADAR collector v0.5")
     print("POLICY: CHANGE ONLY")
     new_items = collect()
     result = merge_with_existing(new_items, keep=args.keep)

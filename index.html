@@ -60,16 +60,16 @@
       </div>
     </section>
 
-    <section class="summary-grid">
+    <section class="summary-grid summary-grid-v05">
       <article class="metric-card">
-        <span>24H DETECTED</span>
+        <span>THIS SCAN</span>
         <strong id="count24">0</strong>
-        <small>過去24時間の検知</small>
+        <small>今回の検知</small>
       </article>
       <article class="metric-card">
         <span>NEW / SOON</span>
         <strong id="countNew">0</strong>
-        <small>新店・開店情報</small>
+        <small>新店・開店予定</small>
       </article>
       <article class="metric-card">
         <span>LIMITED</span>
@@ -77,18 +77,24 @@
         <small>限定・期間情報</small>
       </article>
       <article class="metric-card">
-        <span>CLOSED / CHANGE</span>
-        <strong id="countBuzz">0</strong>
-        <small>話題・注目情報</small>
+        <span>CLOSED</span>
+        <strong id="countClosed">0</strong>
+        <small>閉店情報</small>
+      </article>
+      <article class="metric-card">
+        <span>CHANGE</span>
+        <strong id="countChange">0</strong>
+        <small>移転・リニューアル</small>
       </article>
     </section>
 
     <section class="toolbar">
       <div class="filters" role="tablist" aria-label="情報フィルター">
         <button class="filter active" data-filter="all">すべて</button>
-        <button class="filter" data-filter="new">新店・予定</button>
+        <button class="filter" data-filter="opening">新店・予定</button>
         <button class="filter" data-filter="limited">限定</button>
-        <button class="filter" data-filter="buzz">話題</button>
+        <button class="filter" data-filter="closed">閉店</button>
+        <button class="filter" data-filter="change">移転・改装</button>
       </div>
       <div class="updated">
         <span>自動表示データ：</span>
@@ -102,7 +108,7 @@
           <p class="eyebrow">LIVE FEED</p>
           <h3>最近検知した情報</h3>
         </div>
-        <p class="subtle">※ 現在はデモデータです。自動収集機能は次段階で接続できます。</p>
+        <p class="subtle">公開Web情報から自動検知した候補を表示しています。詳細は必ず情報源で確認してください。</p>
       </div>
       <div id="feed" class="feed-grid" aria-live="polite"></div>
       <div id="emptyState" class="empty-state" hidden>該当する情報はありません。</div>
