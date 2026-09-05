@@ -1,51 +1,58 @@
-# 新潟ラーメンレーダー v0.2
+# 新潟ラーメンレーダー v0.3
 
-v0.1 の画面に、5つの公開Webサイトを巡回して `data/ramen.json` を更新する
-Pythonコレクターを追加した版です。
+## v0.3 の方針
 
-## 監視する5サイト
+v0.2 は「ラーメン関連記事」を広く拾っていましたが、
+v0.3 は **街の変化だけを検知するRADAR** に変更しました。
 
-1. にいがた速報
-2. にいがた経済新聞
-3. PR TIMES
-4. Komachi Web
-5. 025 | ゼロニィゴ
+掲載対象:
+- NEW OPEN
+- OPENING SOON
+- LIMITED
+- CLOSED
+- RELOCATION
+- RENEWAL
 
-巡回URLは `sources.json` で管理します。
+原則として掲載しないもの:
+- おすすめ○選
+- まとめ記事
+- 食べ歩き
+- 普通の店舗紹介
+- ランキング
+- 特集
+- NGT48らーめん部などの企画記事
 
-## Windowsで手動テスト
+## 主な改善
 
-Python 3.11+ 推奨。
+- サンプル・デモデータを完全削除
+- `NEW` の誤判定を抑制
+- タイトルの変化語を優先して分類
+- 店名抽出を改善
+- 文字化け判定を追加
+- 既存の誤判定データを次回実行時に除外
+- `policy: change-only` をJSONに保存
 
-```bat
-cd niigata-ramen-radar-v0.2
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python collector.py --dry-run
-```
+## GitHubへの反映
 
-問題なければ：
+既存リポジトリで以下を置き換えてください。
 
-```bat
-python collector.py
-```
+- `collector.py`
+- `data/ramen.json`
+- `app.js`
+- `index.html`
 
-`data/ramen.json` が更新されます。
+またはv0.3の中身をリポジトリに上書きしてください。
 
-## GitHub Actionsで自動更新
+既存の `.github/workflows/update-radar.yml` はそのまま使えます。
 
-`.github/workflows/update-radar.yml` を同梱しています。
-GitHubへリポジトリとしてアップロードすると、JST 3時・9時・15時・21時ごろに
-自動巡回し、`data/ramen.json` に変化があればコミットします。
+アップロード後:
 
-NetlifyをそのGitHubリポジトリと連携すれば、JSON更新 → GitHub commit →
-Netlify自動デプロイ、まで無人化できます。
+1. GitHub → Actions
+2. Update Ramen Radar
+3. Run workflow
+4. 緑チェックを待つ
+5. `data/ramen.json` を確認
 
-## 注意
-
-- 記事本文や画像を保存・転載する作りではありません。
-- 公開ページのタイトル、URL等を検知し、RADAR用の短い独自表示に変換します。
-- robots.txt、利用規約、HTML構造変更、アクセス制限等により取得できないサイトが
-  出ることがあります。
-- 初期版なので店名抽出・重複判定はルールベースです。v0.3でAI補助を加える余地があります。
+`meta.version` が `0.3`、
+`meta.policy` が `change-only`
+になっていれば新バージョンです。
