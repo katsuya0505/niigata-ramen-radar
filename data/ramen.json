@@ -1,15 +1,41 @@
 {
   "meta": {
-    "last_scan": "2026-09-06 01:01",
-    "data_updated": "2026-09-06 01:01",
+    "last_scan": "2026-09-06 01:22",
+    "data_updated": "2026-09-06 01:22",
     "mode": "live",
-    "version": "0.3",
+    "version": "0.4",
     "source_count": 5,
-    "detected_this_scan": 5,
-    "item_count": 5,
+    "detected_this_scan": 2,
+    "item_count": 6,
     "policy": "change-only"
   },
   "items": [
+    {
+      "id": 436045662623,
+      "type": "renewal",
+      "name": "牡蠣と昆布のらー麺専門店 MANNISH",
+      "area": "新潟市西区",
+      "summary": "にいがた速報でリニューアル情報を検知しました。詳細は情報源で確認できます。",
+      "detected_at": "2026-09-06T01:21:55+09:00",
+      "published_at": null,
+      "tags": [
+        "RENEWAL",
+        "新潟市西区",
+        "にいがた速報"
+      ],
+      "source_url": "https://gata21.jp/archives/97714545.html",
+      "image_url": "https://livedoor.blogimg.jp/itotaku77/imgs/5/4/54e0f830-s.jpg",
+      "sources": [
+        {
+          "name": "にいがた速報",
+          "url": "https://gata21.jp/archives/97714545.html",
+          "title": "「牡蠣と昆布」から「塩生姜」で新スタート！？『イオン新潟青山店』内にあるラーメン店『牡蠣と昆布のらー麺専門店 MANNISH』が『塩生姜らー麺専門店 MANNISH』にリニューアルするらしい : にいがた速報 - 新潟県新潟市の地域情報サイト"
+        }
+      ],
+      "source_count": 1,
+      "confidence": 55,
+      "map_url": "https://www.google.com/maps/search/%E7%89%A1%E8%A0%A3%E3%81%A8%E6%98%86%E5%B8%83%E3%81%AE%E3%82%89%E3%83%BC%E9%BA%BA%E5%B0%82%E9%96%80%E5%BA%97%20MANNISH%20%E6%96%B0%E6%BD%9F%E5%B8%82%E8%A5%BF%E5%8C%BA"
+    },
     {
       "id": 1005766938815,
       "type": "closed",
@@ -79,6 +105,7 @@
         "にいがた速報"
       ],
       "source_url": "https://gata21.jp/archives/97689708.html",
+      "image_url": "https://livedoor.blogimg.jp/itotaku77/imgs/b/d/bd2a4cce-s.jpg",
       "sources": [
         {
           "name": "にいがた速報",
