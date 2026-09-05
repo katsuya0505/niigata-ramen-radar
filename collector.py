@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NIIGATA RAMEN RADAR collector v0.5
+NIIGATA RAMEN RADAR collector v0.6
 
 目的:
 「ラーメン記事を集める」のではなく、
@@ -185,6 +185,35 @@ def extract_jsonld(soup: BeautifulSoup) -> tuple[Optional[str], Optional[str]]:
                 stack.extend(x)
     return headline, published
 
+def _image_score(img) -> int:
+    src = clean_text(img.get("src") or img.get("data-src") or img.get("data-lazy-src") or "")
+    alt = clean_text(img.get("alt") or "")
+    text = (src + " " + alt).lower()
+
+    if not src:
+        return -999
+
+    score = 0
+    if contains_any(text, RAMEN_WORDS):
+        score += 80
+    if contains_any(text, ["料理", "メニュー", "丼", "スープ", "チャーシュー", "店舗", "外観"]):
+        score += 30
+    if any(x in text for x in ["logo", "icon", "avatar", "banner", "header", "footer", "ads", "advert"]):
+        score -= 100
+
+    width = img.get("width")
+    height = img.get("height")
+    try:
+        if width and int(re.sub(r"\D", "", str(width)) or 0) >= 400:
+            score += 10
+        if height and int(re.sub(r"\D", "", str(height)) or 0) >= 250:
+            score += 10
+    except Exception:
+        pass
+
+    return score
+
+
 def page_title_and_text(html: str) -> tuple[str, str, Optional[str], Optional[str]]:
     soup = BeautifulSoup(html, "html.parser")
     jsonld_title, published = extract_jsonld(soup)
@@ -199,13 +228,25 @@ def page_title_and_text(html: str) -> tuple[str, str, Optional[str], Optional[st
 
     body_text = clean_text(soup.get_text(" ", strip=True))
 
+    # まず記事本文に近い画像を候補化し、ラーメン/料理らしい画像を優先。
     image_url = None
-    og = soup.find("meta", attrs={"property": "og:image"})
-    if og and og.get("content"):
-        image_url = urljoin("https://" + urlparse("https://dummy.invalid").netloc, og.get("content"))
-    # urljoin above is only useful for absolute URLs; for relative image URLs resolve later.
-    if og and og.get("content"):
-        image_url = og.get("content").strip()
+    scored = []
+    for img in soup.find_all("img"):
+        src = img.get("src") or img.get("data-src") or img.get("data-lazy-src")
+        if not src:
+            continue
+        scored.append((_image_score(img), src))
+
+    if scored:
+        scored.sort(key=lambda x: x[0], reverse=True)
+        if scored[0][0] >= 20:
+            image_url = scored[0][1]
+
+    # 適切な記事画像が見つからなければ og:image を使う。
+    if not image_url:
+        og = soup.find("meta", attrs={"property": "og:image"})
+        if og and og.get("content"):
+            image_url = og.get("content").strip()
 
     return title, body_text[:25000], published, image_url
 
@@ -280,19 +321,25 @@ def change_type(title: str, body_head: str) -> Optional[str]:
 
 def is_generic_article(title: str, typ: Optional[str]) -> bool:
     """
-    v0.5: 店舗単体の変化ではない「まとめ・特集・スタンプラリー・複数杯紹介」を除外。
-    強い変更イベントでも、タイトルが明らかな企画記事なら掲載しない。
+    v0.6: 店舗単体の変化だけを残す。
+    まとめ、○選、複数杯、企画、イベント、スタンプラリーは必ず除外。
     """
     t = clean_text(title)
 
-    if re.search(r"\d+\s*(?:選|杯|店)", t):
-        return True
-    if contains_any(t, [
+    hard_exclude = [
         "おすすめ", "まとめ", "厳選", "特集", "ランキング",
-        "スタンプラリー", "食べ歩き", "活動日誌", "お祭り", "祭り"
-    ]):
+        "スタンプラリー", "食べ歩き", "活動日誌", "お祭り", "祭り",
+        "上半期版", "下半期版", "保存版", "総まとめ",
+        "今しか食べられない", "食べるならココ"
+    ]
+    if contains_any(t, hard_exclude):
         return True
-    if "人気ラーメン店が贈る" in t:
+
+    if re.search(r"\d+\s*(?:選|杯|店|軒)", t):
+        return True
+
+    # 「人気店が贈る限定麺6杯」など複数店舗・複数商品系
+    if re.search(r"(?:限定麺|ラーメン).{0,12}\d+\s*杯", t):
         return True
 
     return False
@@ -365,6 +412,32 @@ def extract_shop_name(title: str) -> str:
             return candidate[:60]
 
     return ""
+
+def valid_shop_name(name: str) -> bool:
+    n = clean_text(name)
+    if not n or len(n) < 2 or len(n) > 60:
+        return False
+
+    bad = [
+        "上半期版", "下半期版", "お祭り", "祭り", "今しか",
+        "おすすめ", "まとめ", "スタンプラリー", "特集", "ランキング"
+    ]
+    if contains_any(n, bad):
+        return False
+    if re.search(r"\d+\s*(?:選|杯|店|軒)", n):
+        return False
+
+    # 地名・商業施設名だけでは店名にしない
+    if re.fullmatch(r".*(?:駅近く|駅周辺|市|区|県)$", n):
+        return False
+
+    # ラーメン店らしい語、または固有店名として使われやすい末尾を要求
+    shopish = [
+        "ラーメン", "らーめん", "らー麺", "らぁ麺", "中華そば", "中華蕎麦",
+        "麺", "亭", "家", "食堂", "専門店", "本店", "支店", "店",
+        "MANNISH", "RAMEN"
+    ]
+    return contains_any(n, shopish)
 
 def normalize_key(name: str) -> str:
     x = name.lower()
@@ -441,7 +514,7 @@ def collect() -> list[dict]:
                 continue
 
             shop = extract_shop_name(title)
-            if not shop or looks_mojibake(shop):
+            if not shop or looks_mojibake(shop) or not valid_shop_name(shop):
                 continue
 
             area = extract_area(title + " " + body_text[:2500])
@@ -531,7 +604,7 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
             "map_url": "https://www.google.com/maps/search/" + requests.utils.quote(
                 f"{lead['name']} {lead['area']}"
             ),
-            "extractor_version": "0.5"
+            "extractor_version": "0.6"
         })
 
     merged.sort(
@@ -560,35 +633,11 @@ def load_existing() -> dict:
 
 def merge_with_existing(new_items: list[dict], keep: int = 80) -> dict:
     """
-    v0.5 migration:
-    v0.3/v0.4の誤検知を持ち越さないため、v0.5生成済みデータだけを履歴として保持する。
-    初回v0.5実行時には古いカードが自動的に消える。
+    v0.6 strict mode:
+    過去バージョンの誤検知を一切持ち越さず、
+    現在の厳しい判定を通った「今回の検知」だけを表示する。
     """
-    old = load_existing()
-
-    existing = {}
-    for x in old.get("items", []):
-        if is_demo_item(x):
-            continue
-        if x.get("extractor_version") != "0.5":
-            continue
-        if x.get("id") is None:
-            continue
-        if x.get("type") not in {
-            "opening", "opening_soon", "limited",
-            "closed", "relocation", "renewal"
-        }:
-            continue
-        existing[str(x["id"])] = x
-
-    for item in new_items:
-        sid = str(item["id"])
-        if sid in existing:
-            prev = existing[sid]
-            item["detected_at"] = prev.get("detected_at", item["detected_at"])
-        existing[sid] = item
-
-    items = list(existing.values())
+    items = list(new_items)
     items.sort(
         key=lambda x: x.get("published_at") or x.get("detected_at") or "",
         reverse=True
@@ -602,12 +651,13 @@ def merge_with_existing(new_items: list[dict], keep: int = 80) -> dict:
             "last_scan": stamp,
             "data_updated": stamp,
             "mode": "live",
-            "version": "0.5",
+            "version": "0.6",
             "source_count": 5,
-            "detected_this_scan": len(new_items),
+            "detected_this_scan": len(items),
             "item_count": len(items),
-            "policy": "change-only",
-            "photos": "og-image-reference"
+            "policy": "strict-change-only",
+            "history_mode": "current-scan-only",
+            "photos": "article-image-preferred"
         },
         "items": items
     }
@@ -618,7 +668,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    print("NIIGATA RAMEN RADAR collector v0.5")
+    print("NIIGATA RAMEN RADAR collector v0.6")
     print("POLICY: CHANGE ONLY")
     new_items = collect()
     result = merge_with_existing(new_items, keep=args.keep)
