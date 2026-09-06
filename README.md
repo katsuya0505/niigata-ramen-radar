@@ -45,3 +45,29 @@
 - iPhone向け位置情報設定ガイド（Safari / Chrome）を追加
 - 位置情報取得タイムアウトを10秒から20秒へ延長
 - SCAN FAILED時の案内を具体化
+
+## v0.7.8 — BOOKMARK / HOME SCREEN ICON
+- RAMEN RADAR専用アイコンを追加（黒背景＋赤いレーダー＋ラーメン鉢）。
+- Safari / Chromeのタブ・ブックマーク用 favicon を追加。
+- iPhone「ホーム画面に追加」用 `apple-touch-icon`（180x180）を追加。
+- Android / Chrome / PWA向け 192x192・512x512 アイコンを追加。
+- `manifest.webmanifest` を追加し、ホーム画面表示名を `RAMEN RADAR` に設定。
+- iPhoneのホーム画面起動時にアプリ風表示になるためのWeb Appメタ情報を追加。
+- テーマ色をRAMEN RADARのダークUIに合わせて設定。
+
+### GitHubへ更新するファイル
+`index.html`, `manifest.webmanifest`, `favicon.ico`, `favicon.png`, `icons/` フォルダを追加・上書きしてください。
+既存の `app.js`, `styles.css`, `collector.py`, `data/ramen.json` の中身は変更不要です（index.html側のキャッシュバージョンのみ0.7.8に更新済み）。
+
+### iPhoneで確認
+Safariでサイトを開き、共有ボタン → 「ホーム画面に追加」。追加画面とホーム画面にRAMEN RADARの専用アイコンが表示されます。
+以前すでにホーム画面へ追加している場合は、一度古いアイコンを削除してから再追加すると新しいアイコンが反映されやすくなります。
+
+
+## v0.7.9 — Green RAMEN RADAR icon
+- ブックマーク／ホーム画面用アイコンを、緑基調のRAMEN RADAR正式アイコンへ変更。
+- ナルトをレーダー化し、発見を表すハートときらめきを追加。
+- NIIGATA表記をアイコンから外し、他地域にも展開できる共通ブランド仕様に変更。
+- favicon / Apple Touch Icon / Android・PWA 192px・512px / favicon.ico を一括更新。
+- ブラウザテーマカラーもグリーンへ変更。
+- data/ramen.json と collector.py は変更不要。
