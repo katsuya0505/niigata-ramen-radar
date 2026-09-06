@@ -285,3 +285,39 @@ footer strong{display:block;color:#dde7e4;margin-bottom:5px}
 }
 .card-map .map-open:hover{border-color:var(--accent);color:var(--accent)}
 .card-map.google-map .map-status{z-index:3}
+
+/* v0.7.4: 更新情報をファーストビューの主役に */
+.top-summary{
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:32px 0 24px;
+}
+.top-summary-head{display:flex;justify-content:space-between;gap:28px;align-items:flex-start;margin-bottom:22px}
+.top-summary h2{font-family:"Noto Sans JP",sans-serif;font-size:clamp(30px,5vw,50px);line-height:1.15;margin:4px 0 10px;letter-spacing:-.04em}
+.top-summary-lead{margin:0;color:var(--muted);font-size:13px}
+.mini-radar-panel.compact{min-width:220px;padding:12px}
+.mini-radar-panel.compact .mini-radar{width:56px;height:56px}
+.headline-list{display:grid;gap:0;border:1px solid var(--line);background:rgba(12,18,18,.68)}
+.headline-row{display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center;padding:15px 16px;border-bottom:1px solid var(--line)}
+.headline-row:last-child{border-bottom:0}
+.headline-type{font-size:11px;font-weight:900;letter-spacing:.05em;color:var(--accent)}
+.headline-body{font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;line-height:1.7;color:var(--text)}
+.headline-sep{color:var(--muted);font-weight:400}
+.headline-none{font-weight:400;color:#6f7d79}
+.headline-jump,.all-updates-link{color:#dce7e4;text-decoration:none;font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+.headline-jump:hover,.all-updates-link:hover{color:var(--accent)}
+.all-updates-link{display:inline-flex;margin-top:16px;border:1px solid var(--line);padding:9px 12px;border-radius:5px}
+@media(max-width:820px){
+  .top-summary-head{flex-direction:column}
+  .mini-radar-panel.compact{width:100%;min-width:0}
+  .headline-row{grid-template-columns:1fr auto;gap:7px 12px}
+  .headline-type{grid-column:1/2}
+  .headline-body{grid-column:1/-1;grid-row:2}
+  .headline-jump{grid-column:2;grid-row:1}
+}
+@media(max-width:480px){
+  .top-summary{padding-top:24px}
+  .top-summary h2{font-size:34px}
+  .headline-row{padding:13px 12px}
+  .headline-body{font-size:14px}
+}

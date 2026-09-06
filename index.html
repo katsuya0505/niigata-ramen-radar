@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.7.3" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.4" />
 </head>
 <body>
   <div class="noise"></div>
@@ -31,16 +31,21 @@
   </header>
 
   <main>
-    <section class="quick-hero">
-      <div>
-        <p class="kicker">新潟のラーメンの「いま」を、3秒で。</p>
-        <h2>最新の<span>変化</span>から。</h2>
-        <p class="hero-text">開いた瞬間に、前回から何が変わったか。新店・限定・閉店・移転・リニューアルを短く表示します。</p>
+    <section class="top-summary" aria-labelledby="summaryTitle">
+      <div class="top-summary-head">
+        <div>
+          <p class="eyebrow">RAMEN UPDATE</p>
+          <h2 id="summaryTitle">今日のラーメン情報</h2>
+          <p class="top-summary-lead" id="summaryLead">最新の変化を読み込み中です。</p>
+        </div>
+        <div class="mini-radar-panel compact" aria-label="レーダー状況">
+          <div class="mini-radar"><div class="mini-sweep"></div><span></span></div>
+          <div><small>LAST SCAN</small><strong id="lastScan">--</strong></div>
+        </div>
       </div>
-      <div class="mini-radar-panel" aria-label="レーダー状況">
-        <div class="mini-radar"><div class="mini-sweep"></div><span></span></div>
-        <div><small>LAST SCAN</small><strong id="lastScan">--</strong></div>
-      </div>
+
+      <div class="headline-list" id="headlineList" aria-live="polite"></div>
+      <a class="all-updates-link" href="#latestChanges" data-jump-filter="all">すべての更新を見る ↓</a>
     </section>
 
     <section class="period-bar" aria-label="表示期間">
@@ -71,7 +76,7 @@
       <div class="updated"><span>データ更新：</span><strong id="dataUpdated">--</strong></div>
     </section>
 
-    <section class="feed-section">
+    <section class="feed-section" id="latestChanges">
       <div class="section-head">
         <div><p class="eyebrow">LATEST CHANGES</p><h3 id="feedTitle">今日の更新情報</h3></div>
         <p class="subtle">厳格判定を通過した店舗変化を履歴として蓄積。詳細は情報源で確認してください。</p>
@@ -99,6 +104,6 @@
     <small>© 2026 NIIGATA RAMEN RADAR</small>
   </footer>
 
-  <script src="./app.js?v=0.7.3"></script>
+  <script src="./app.js?v=0.7.4"></script>
 </body>
 </html>
