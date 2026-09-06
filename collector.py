@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NIIGATA RAMEN RADAR collector v0.7.1
+NIIGATA RAMEN RADAR collector v0.7.2
 
 目的:
 「ラーメン記事を集める」のではなく、
@@ -604,7 +604,7 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
             "map_url": "https://www.google.com/maps/search/" + requests.utils.quote(
                 f"{lead['name']} {lead['area']}"
             ),
-            "extractor_version": "0.7.1"
+            "extractor_version": "0.7.2"
         })
 
     merged.sort(
@@ -612,6 +612,17 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
         reverse=True
     )
     return merged
+
+KNOWN_ADDRESSES = {
+    "牡蠣と昆布のらー麺専門店 MANNISH": "新潟県新潟市西区青山2-5-1 イオン新潟青山店2F",
+    "九州ラーメン マルシチラーメンセンター": "新潟県新潟市東区石山団地9-2",
+    "マルシチラーメンセンター": "新潟県新潟市東区石山団地9-2",
+}
+
+KNOWN_COORDS = {
+    # イオン新潟青山店（同一建物）の公開位置情報
+    "牡蠣と昆布のらー麺専門店 MANNISH": (37.8962826, 139.0048827),
+}
 
 def geocode_item(session: requests.Session, item: dict) -> tuple[Optional[float], Optional[float]]:
     """OpenStreetMap Nominatimで店舗名+地域を小量ジオコーディングする。
@@ -622,14 +633,21 @@ def geocode_item(session: requests.Session, item: dict) -> tuple[Optional[float]
     if not name:
         return None, None
 
-    queries = [
+    if name in KNOWN_COORDS:
+        return KNOWN_COORDS[name]
+
+    known_address = KNOWN_ADDRESSES.get(name)
+    queries = []
+    if known_address:
+        queries.append(f"{known_address}, 日本")
+    queries.extend([
         f"{name}, {area}, 新潟県, 日本",
         f"{name}, 新潟県, 日本",
-    ]
+    ])
     url = "https://nominatim.openstreetmap.org/search"
     headers = {
         **HEADERS,
-        "User-Agent": "NIIGATA-RAMEN-RADAR/0.7.1 (https://niigata-ramen-radar.netlify.app/)",
+        "User-Agent": "NIIGATA-RAMEN-RADAR/0.7.2 (https://niigata-ramen-radar.netlify.app/)",
     }
     for q in queries:
         try:
@@ -712,7 +730,7 @@ def merge_with_existing(new_items: list[dict], keep: int = 500) -> dict:
     items.sort(key=lambda x: x.get("detected_at") or x.get("published_at") or "", reverse=True)
     items = items[:keep]
     stamp = now_jst().strftime("%Y-%m-%d %H:%M")
-    return {"meta":{"last_scan":stamp,"data_updated":stamp,"mode":"live","version":"0.7.1","source_count":5,"detected_this_scan":len(new_items),"item_count":len(items),"policy":"strict-change-only","history_mode":"deduplicated-history","photos":"disabled-map-first"},"items":items}
+    return {"meta":{"last_scan":stamp,"data_updated":stamp,"mode":"live","version":"0.7.2","source_count":5,"detected_this_scan":len(new_items),"item_count":len(items),"policy":"strict-change-only","history_mode":"deduplicated-history","photos":"disabled-map-first"},"items":items}
 
 def main():
     parser = argparse.ArgumentParser()
@@ -720,7 +738,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    print("NIIGATA RAMEN RADAR collector v0.7.1")
+    print("NIIGATA RAMEN RADAR collector v0.7.2")
     print("POLICY: CHANGE ONLY")
     new_items = collect()
     result = merge_with_existing(new_items, keep=args.keep)
