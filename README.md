@@ -30,3 +30,11 @@
 - 5分ごとに `data/ramen.json` を再確認（ページを開いたままでも新着を反映）
 - フッターに `POWERED BY CivITech` を追加
 - 既存の今日 / 7日 / 30日サマリー、Google Maps、履歴表示は維持
+
+
+## v0.7.6 — NEARBY RADAR
+- 「近くのラーメンを探す」を追加。
+- ブラウザの位置情報許可後、現在地を中心にGoogle Mapsのラーメン検索をサイト内に表示。
+- Google Mapsで大きく開くリンクも現在地に追随。
+- 位置情報はブラウザ内で表示に使うだけで、RAMEN RADAR側には保存しません。
+- HTTPS（Netlify）上で動作します。

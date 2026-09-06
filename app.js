@@ -107,3 +107,51 @@ async function refreshRadarData(){
   catch(e){console.debug("radar refresh skipped",e)}
 }
 setInterval(refreshRadarData,5*60*1000);
+
+// v0.7.6: NEARBY RADAR — browser geolocation -> Google Maps nearby ramen search.
+const nearbyButton = document.getElementById("nearbyButton");
+const nearbyStatus = document.getElementById("nearbyStatus");
+const nearbyMap = document.getElementById("nearbyMap");
+const nearbyPlaceholder = document.getElementById("nearbyPlaceholder");
+const nearbyExternal = document.getElementById("nearbyExternal");
+
+function setNearbyStatus(text, state=""){
+  if(!nearbyStatus)return;
+  nearbyStatus.textContent=text;
+  nearbyStatus.className=`nearby-status ${state}`.trim();
+}
+function nearbyEmbedUrl(lat, lon){
+  // API key is not required for this simple Maps embed search.
+  return `https://maps.google.com/maps?q=${encodeURIComponent("ラーメン")}&ll=${lat},${lon}&z=14&output=embed`;
+}
+function nearbyMapsUrl(lat, lon){
+  return `https://www.google.com/maps/search/${encodeURIComponent("ラーメン")}/@${lat},${lon},14z`;
+}
+function startNearbyRadar(){
+  if(!navigator.geolocation){
+    setNearbyStatus("LOCATION UNAVAILABLE — この端末では位置情報を利用できません", "error");
+    return;
+  }
+  nearbyButton?.classList.add("scanning");
+  if(nearbyButton)nearbyButton.disabled=true;
+  setNearbyStatus("SCANNING CURRENT LOCATION...", "scanning");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude;
+    const lon=pos.coords.longitude;
+    if(nearbyMap){
+      nearbyMap.src=nearbyEmbedUrl(lat,lon);
+      nearbyMap.hidden=false;
+    }
+    if(nearbyPlaceholder)nearbyPlaceholder.hidden=true;
+    if(nearbyExternal)nearbyExternal.href=nearbyMapsUrl(lat,lon);
+    setNearbyStatus("LOCATION LOCKED — 周辺のラーメン店を表示中", "locked");
+    nearbyButton?.classList.remove("scanning");
+    if(nearbyButton){nearbyButton.disabled=false;nearbyButton.innerHTML='<span class="nearby-ping">◎</span> 現在地を再スキャン';}
+  },err=>{
+    const msg = err.code===1 ? "位置情報の利用が許可されていません" : err.code===2 ? "現在地を取得できませんでした" : "位置情報の取得がタイムアウトしました";
+    setNearbyStatus(`SCAN FAILED — ${msg}`, "error");
+    nearbyButton?.classList.remove("scanning");
+    if(nearbyButton)nearbyButton.disabled=false;
+  },{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+}
+nearbyButton?.addEventListener("click",startNearbyRadar);

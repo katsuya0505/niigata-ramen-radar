@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.7.5" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.6" />
 </head>
 <body>
   <div class="noise"></div>
@@ -47,6 +47,28 @@
 
       <div class="headline-list" id="headlineList" aria-live="polite"></div>
       <a class="all-updates-link" href="#latestChanges" data-jump-filter="all">すべての更新を見る ↓</a>
+    </section>
+
+
+    <section class="nearby-radar" id="nearbyRadar" aria-labelledby="nearbyTitle">
+      <div class="nearby-copy">
+        <p class="eyebrow">NEARBY RADAR</p>
+        <h2 id="nearbyTitle">近くのラーメンを探す</h2>
+        <p>現在地を使って、今いる場所の周辺にあるラーメン店を地図で探します。位置情報は保存しません。</p>
+        <div class="nearby-actions">
+          <button class="nearby-button" id="nearbyButton" type="button"><span class="nearby-ping">◎</span> 現在地から探す</button>
+          <a class="nearby-external" id="nearbyExternal" href="https://www.google.com/maps/search/ラーメン/" target="_blank" rel="noopener noreferrer">Google Mapsで探す ↗</a>
+        </div>
+        <div class="nearby-status" id="nearbyStatus" role="status" aria-live="polite">LOCATION STANDBY</div>
+      </div>
+      <div class="nearby-map-shell" id="nearbyMapShell">
+        <div class="nearby-placeholder" id="nearbyPlaceholder">
+          <div class="nearby-rings"><span></span><span></span><i></i></div>
+          <strong>NEARBY SCAN</strong>
+          <small>現在地の利用を許可すると周辺検索を開始します</small>
+        </div>
+        <iframe id="nearbyMap" title="現在地付近のラーメン店" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen hidden></iframe>
+      </div>
     </section>
 
     <section class="period-bar" aria-label="表示期間">
@@ -106,6 +128,6 @@
     <small>© 2026 NIIGATA RAMEN RADAR</small>
   </footer>
 
-  <script src="./app.js?v=0.7.5"></script>
+  <script src="./app.js?v=0.7.6"></script>
 </body>
 </html>
