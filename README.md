@@ -1,3 +1,15 @@
+# NIIGATA RAMEN RADAR v0.7.10
+
+## Safari / iPhone アイコン互換性改善
+- ルート直下に `apple-touch-icon.png` を追加
+- `apple-touch-icon-precomposed.png` も追加
+- ルート直下に `favicon-32x32.png` / `favicon-16x16.png` を追加
+- `shortcut icon` を明示
+- アイコン参照をルート絶対パス化
+- v0.7.10 のキャッシュバスターを付与
+
+Safariはお気に入りアイコンを強くキャッシュするため、デプロイ後は古いお気に入りを削除し、Safariを完全に閉じて開き直してから再登録すると反映されやすくなります。
+
 # NIIGATA RAMEN RADAR v0.7.2
 
 地図表示の安定化版です。
