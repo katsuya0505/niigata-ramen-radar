@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NIIGATA RAMEN RADAR collector v0.6
+NIIGATA RAMEN RADAR collector v0.7
 
 目的:
 「ラーメン記事を集める」のではなく、
@@ -597,14 +597,14 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
                 f"{source_count} SOURCES" if source_count > 1 else lead["source_name"]
             ],
             "source_url": lead["source_url"],
-            "image_url": lead.get("image_url"),
+            "image_url": None,
             "sources": source_links,
             "source_count": source_count,
             "confidence": confidence,
             "map_url": "https://www.google.com/maps/search/" + requests.utils.quote(
                 f"{lead['name']} {lead['area']}"
             ),
-            "extractor_version": "0.6"
+            "extractor_version": "0.7"
         })
 
     merged.sort(
@@ -631,44 +631,42 @@ def load_existing() -> dict:
     except Exception:
         return {"meta": {}, "items": []}
 
-def merge_with_existing(new_items: list[dict], keep: int = 80) -> dict:
-    """
-    v0.6 strict mode:
-    過去バージョンの誤検知を一切持ち越さず、
-    現在の厳しい判定を通った「今回の検知」だけを表示する。
-    """
-    items = list(new_items)
-    items.sort(
-        key=lambda x: x.get("published_at") or x.get("detected_at") or "",
-        reverse=True
-    )
+def merge_with_existing(new_items: list[dict], keep: int = 500) -> dict:
+    """v0.7: strict判定済みイベントを履歴保存し、同一イベントは重複させない。"""
+    existing = load_existing()
+    old_items = [x for x in existing.get("items", []) if not is_demo_item(x)]
+    by_id = {str(x.get("id")): x for x in old_items if x.get("id") is not None}
+    stamp_iso = now_jst().isoformat(timespec="seconds")
+
+    for fresh in new_items:
+        key = str(fresh.get("id"))
+        if key in by_id:
+            old = by_id[key]
+            # 初回検知日時を保持。最新の情報源・分類等は更新する。
+            first_detected = old.get("detected_at") or fresh.get("detected_at")
+            fresh["detected_at"] = first_detected
+            fresh["last_seen_at"] = stamp_iso
+            # 既存に位置情報があれば引き継ぐ
+            fresh["lat"] = old.get("lat")
+            fresh["lon"] = old.get("lon")
+            by_id[key] = fresh
+        else:
+            fresh["last_seen_at"] = stamp_iso
+            by_id[key] = fresh
+
+    items = list(by_id.values())
+    items.sort(key=lambda x: x.get("detected_at") or x.get("published_at") or "", reverse=True)
     items = items[:keep]
-
     stamp = now_jst().strftime("%Y-%m-%d %H:%M")
-
-    return {
-        "meta": {
-            "last_scan": stamp,
-            "data_updated": stamp,
-            "mode": "live",
-            "version": "0.6",
-            "source_count": 5,
-            "detected_this_scan": len(items),
-            "item_count": len(items),
-            "policy": "strict-change-only",
-            "history_mode": "current-scan-only",
-            "photos": "article-image-preferred"
-        },
-        "items": items
-    }
+    return {"meta":{"last_scan":stamp,"data_updated":stamp,"mode":"live","version":"0.7","source_count":5,"detected_this_scan":len(new_items),"item_count":len(items),"policy":"strict-change-only","history_mode":"deduplicated-history","photos":"disabled-map-first"},"items":items}
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--keep", type=int, default=80)
+    parser.add_argument("--keep", type=int, default=500)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    print("NIIGATA RAMEN RADAR collector v0.6")
+    print("NIIGATA RAMEN RADAR collector v0.7")
     print("POLICY: CHANGE ONLY")
     new_items = collect()
     result = merge_with_existing(new_items, keep=args.keep)

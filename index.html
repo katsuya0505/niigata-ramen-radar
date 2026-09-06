@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="新潟のラーメンの「いま」を3秒で。新店・限定・話題をレーダー形式で表示する実験的ローカルメディア。" />
+  <meta name="description" content="新潟のラーメンの「いま」を3秒で。新店・限定・閉店・移転・リニューアルを、今日・7日間・30日間で見られる新潟ラーメン情報レーダー。" />
   <title>新潟ラーメンレーダー | NIIGATA RAMEN RADAR</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,61 +31,33 @@
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero-copy">
+    <section class="quick-hero">
+      <div>
         <p class="kicker">新潟のラーメンの「いま」を、3秒で。</p>
-        <h2>読むより、<br><span>見つける。</span></h2>
-        <p class="hero-text">
-          新店、限定麺、話題の一杯。新潟のラーメン情報を
-          「記事」ではなく「動き」として捉える実験的レーダーです。
-        </p>
+        <h2>最新の<span>変化</span>から。</h2>
+        <p class="hero-text">開いた瞬間に、前回から何が変わったか。新店・限定・閉店・移転・リニューアルを短く表示します。</p>
       </div>
-
-      <div class="radar-panel" aria-label="レーダー状況">
-        <div class="radar">
-          <div class="ring r1"></div>
-          <div class="ring r2"></div>
-          <div class="ring r3"></div>
-          <div class="axis x"></div>
-          <div class="axis y"></div>
-          <div class="sweep"></div>
-          <span class="blip b1"></span>
-          <span class="blip b2"></span>
-          <span class="blip b3"></span>
-        </div>
-        <div class="scan-meta">
-          <span>LAST SCAN</span>
-          <strong id="lastScan">--</strong>
-        </div>
+      <div class="mini-radar-panel" aria-label="レーダー状況">
+        <div class="mini-radar"><div class="mini-sweep"></div><span></span></div>
+        <div><small>LAST SCAN</small><strong id="lastScan">--</strong></div>
       </div>
     </section>
 
-    <section class="summary-grid summary-grid-v05">
-      <article class="metric-card">
-        <span>THIS SCAN</span>
-        <strong id="count24">0</strong>
-        <small>今回のスキャン</small>
-      </article>
-      <article class="metric-card">
-        <span>NEW / SOON</span>
-        <strong id="countNew">0</strong>
-        <small>新店・開店予定</small>
-      </article>
-      <article class="metric-card">
-        <span>LIMITED</span>
-        <strong id="countLimited">0</strong>
-        <small>限定・期間情報</small>
-      </article>
-      <article class="metric-card">
-        <span>CLOSED</span>
-        <strong id="countClosed">0</strong>
-        <small>閉店情報</small>
-      </article>
-      <article class="metric-card">
-        <span>CHANGE</span>
-        <strong id="countChange">0</strong>
-        <small>移転・リニューアル</small>
-      </article>
+    <section class="period-bar" aria-label="表示期間">
+      <div class="period-tabs" role="tablist">
+        <button class="period active" data-days="1">今日</button>
+        <button class="period" data-days="7">7日間</button>
+        <button class="period" data-days="30">30日間</button>
+      </div>
+      <div class="period-result"><strong id="periodCount">0</strong> 件の変化を表示</div>
+    </section>
+
+    <section class="summary-grid summary-grid-v07">
+      <article class="metric-card"><span>ALL CHANGES</span><strong id="countAll">0</strong><small>選択期間</small></article>
+      <article class="metric-card"><span>NEW / SOON</span><strong id="countNew">0</strong><small>新店・開店予定</small></article>
+      <article class="metric-card"><span>LIMITED</span><strong id="countLimited">0</strong><small>限定・期間情報</small></article>
+      <article class="metric-card"><span>CLOSED</span><strong id="countClosed">0</strong><small>閉店情報</small></article>
+      <article class="metric-card"><span>CHANGE</span><strong id="countChange">0</strong><small>移転・リニューアル</small></article>
     </section>
 
     <section class="toolbar">
@@ -96,22 +68,16 @@
         <button class="filter" data-filter="closed">閉店</button>
         <button class="filter" data-filter="change">移転・改装</button>
       </div>
-      <div class="updated">
-        <span>自動表示データ：</span>
-        <strong id="dataUpdated">--</strong>
-      </div>
+      <div class="updated"><span>データ更新：</span><strong id="dataUpdated">--</strong></div>
     </section>
 
     <section class="feed-section">
       <div class="section-head">
-        <div>
-          <p class="eyebrow">LIVE FEED</p>
-          <h3>最近検知した情報</h3>
-        </div>
-        <p class="subtle">現在のスキャンで厳格判定を通過した店舗変化だけを表示しています。詳細は必ず情報源で確認してください。</p>
+        <div><p class="eyebrow">LATEST CHANGES</p><h3 id="feedTitle">今日の更新情報</h3></div>
+        <p class="subtle">厳格判定を通過した店舗変化を履歴として蓄積。詳細は情報源で確認してください。</p>
       </div>
       <div id="feed" class="feed-grid" aria-live="polite"></div>
-      <div id="emptyState" class="empty-state" hidden>該当する情報はありません。</div>
+      <div id="emptyState" class="empty-state" hidden>この期間に検知した情報はありません。</div>
     </section>
 
     <section class="about">
