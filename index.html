@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.7.4" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.5" />
 </head>
 <body>
   <div class="noise"></div>
@@ -24,14 +24,15 @@
         <h1>新潟ラーメンレーダー</h1>
       </div>
     </div>
-    <div class="status">
+    <div class="status" id="radarStatus">
       <span class="status-dot"></span>
-      <span>RADAR ONLINE</span>
+      <span id="radarStatusText">RADAR ONLINE</span>
     </div>
   </header>
 
   <main>
     <section class="top-summary" aria-labelledby="summaryTitle">
+      <div class="fresh-alert" id="freshAlert" role="status" aria-live="polite"></div>
       <div class="top-summary-head">
         <div>
           <p class="eyebrow">RAMEN UPDATE</p>
@@ -100,10 +101,11 @@
     <div>
       <strong>NIIGATA RAMEN RADAR</strong>
       <span>Experimental Local Media</span>
+      <div class="civitech-powered"><span class="civitech-node"></span>POWERED BY <strong>CivITech</strong></div>
     </div>
     <small>© 2026 NIIGATA RAMEN RADAR</small>
   </footer>
 
-  <script src="./app.js?v=0.7.4"></script>
+  <script src="./app.js?v=0.7.5"></script>
 </body>
 </html>

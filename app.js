@@ -86,3 +86,24 @@ function updateMetrics(){const list=periodItems();document.getElementById("count
 filters.forEach(btn=>btn.addEventListener("click",()=>{filters.forEach(b=>b.classList.remove("active"));btn.classList.add("active");activeFilter=btn.dataset.filter;render()}));
 periods.forEach(btn=>btn.addEventListener("click",()=>{periods.forEach(b=>b.classList.remove("active"));btn.classList.add("active");activeDays=Number(btn.dataset.days);render()}));
 fetch("./data/ramen.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("data load failed");return r.json()}).then(data=>{meta=data.meta||{};items=(data.items||[]).sort((a,b)=>itemDate(b)-itemDate(a));render()}).catch(err=>{console.error(err);emptyState.hidden=false;emptyState.textContent="データを読み込めませんでした。"});
+
+// v0.7.5: fresh opening signal alert + lightweight live refresh
+const freshAlert=document.getElementById("freshAlert");
+const radarStatus=document.getElementById("radarStatus");
+const radarStatusText=document.getElementById("radarStatusText");
+function ageMinutes(item){const t=itemDate(item).getTime();return t?Math.floor((Date.now()-t)/60000):999999}
+function renderFreshAlert(){
+  if(!freshAlert)return;
+  const fresh=items.filter(x=>["opening","opening_soon"].includes(x.type)&&ageMinutes(x)>=0&&ageMinutes(x)<60).sort((a,b)=>itemDate(b)-itemDate(a))[0];
+  if(!fresh){freshAlert.classList.remove("active");radarStatus?.classList.remove("warning");if(radarStatusText)radarStatusText.textContent="RADAR ONLINE";return}
+  const mins=Math.max(0,ageMinutes(fresh));
+  freshAlert.classList.add("active");radarStatus?.classList.add("warning");if(radarStatusText)radarStatusText.textContent="NEW SIGNAL";
+  freshAlert.innerHTML=`<div class="alert-kicker">⚠ WARNING / FRESH SIGNAL</div><div class="alert-main"><span class="warning-triangle">▲</span><strong>NEW RAMEN SHOP DETECTED</strong><span class="alert-age">${mins<1?'たった今':mins+'分前'}</span></div><div class="alert-shop">${esc(fresh.name)}（${esc(areaShort(fresh.area))}）</div><a class="alert-link" href="#latestChanges" data-jump-filter="opening">新店情報を確認 ↓</a>`;
+}
+const originalRender=render;
+render=function(){originalRender();renderFreshAlert()};
+async function refreshRadarData(){
+  try{const r=await fetch(`./data/ramen.json?t=${Date.now()}`,{cache:"no-store"});if(!r.ok)return;const data=await r.json();const next=JSON.stringify(data.items||[]);const prev=JSON.stringify(items);meta=data.meta||meta;if(next!==prev){items=(data.items||[]).sort((a,b)=>itemDate(b)-itemDate(a));render()}else{renderFreshAlert();updateMetrics()}}
+  catch(e){console.debug("radar refresh skipped",e)}
+}
+setInterval(refreshRadarData,5*60*1000);
