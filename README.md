@@ -14,3 +14,9 @@ collector.py が既存の data/ramen.json を読み込み、新しい検知情�
 
 ## 次段階
 店舗住所/緯度経度の取得を一次情報から安全に追加すると、カード内にOpenStreetMapを自動表示できます。
+
+
+## v0.7.1
+- OpenStreetMap Nominatimで店舗名＋地域から緯度経度を取得し、カード内にミニマップを表示します。
+- 座標が取得できない場合は「確認中」と表示し続けず、MAP検索リンクを案内します。
+- data/ramen.json は既存履歴を保持したまま collector が更新します。

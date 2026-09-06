@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NIIGATA RAMEN RADAR collector v0.7
+NIIGATA RAMEN RADAR collector v0.7.1
 
 目的:
 「ラーメン記事を集める」のではなく、
@@ -604,7 +604,7 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
             "map_url": "https://www.google.com/maps/search/" + requests.utils.quote(
                 f"{lead['name']} {lead['area']}"
             ),
-            "extractor_version": "0.7"
+            "extractor_version": "0.7.1"
         })
 
     merged.sort(
@@ -612,6 +612,44 @@ def merge_duplicates(raw_items: list[dict]) -> list[dict]:
         reverse=True
     )
     return merged
+
+def geocode_item(session: requests.Session, item: dict) -> tuple[Optional[float], Optional[float]]:
+    """OpenStreetMap Nominatimで店舗名+地域を小量ジオコーディングする。
+    見つからない場合は座標を捏造せず None を返す。
+    """
+    name = clean_text(str(item.get("name", "")))
+    area = clean_text(str(item.get("area", "")))
+    if not name:
+        return None, None
+
+    queries = [
+        f"{name}, {area}, 新潟県, 日本",
+        f"{name}, 新潟県, 日本",
+    ]
+    url = "https://nominatim.openstreetmap.org/search"
+    headers = {
+        **HEADERS,
+        "User-Agent": "NIIGATA-RAMEN-RADAR/0.7.1 (https://niigata-ramen-radar.netlify.app/)",
+    }
+    for q in queries:
+        try:
+            r = session.get(
+                url,
+                params={"q": q, "format": "jsonv2", "limit": 1, "countrycodes": "jp"},
+                headers=headers,
+                timeout=20,
+            )
+            r.raise_for_status()
+            rows = r.json()
+            if rows:
+                lat = float(rows[0]["lat"])
+                lon = float(rows[0]["lon"])
+                return lat, lon
+        except Exception as e:
+            print(f"[WARN] geocode failed: {q} ({e})")
+        # 公開Nominatimへ連続アクセスしない
+        time.sleep(1.1)
+    return None, None
 
 def is_demo_item(item: dict) -> bool:
     name = str(item.get("name", "")).lower()
@@ -646,7 +684,7 @@ def merge_with_existing(new_items: list[dict], keep: int = 500) -> dict:
             first_detected = old.get("detected_at") or fresh.get("detected_at")
             fresh["detected_at"] = first_detected
             fresh["last_seen_at"] = stamp_iso
-            # 既存に位置情報があれば引き継ぐ
+            # 既存に位置情報があれば引き継ぐ。なければ後段で取得する。
             fresh["lat"] = old.get("lat")
             fresh["lon"] = old.get("lon")
             by_id[key] = fresh
@@ -654,11 +692,27 @@ def merge_with_existing(new_items: list[dict], keep: int = 500) -> dict:
             fresh["last_seen_at"] = stamp_iso
             by_id[key] = fresh
 
+    # 座標がないイベントだけをジオコーディング。
+    # 「位置情報を確認中」のままにせず、取得できたものだけ地図を表示する。
+    with requests.Session() as geo_session:
+        for item in by_id.values():
+            if item.get("lat") is not None and item.get("lon") is not None:
+                continue
+            lat, lon = geocode_item(geo_session, item)
+            if lat is not None and lon is not None:
+                item["lat"] = lat
+                item["lon"] = lon
+                print(f"[MAP] {item.get('name')} -> {lat:.6f}, {lon:.6f}")
+            else:
+                item["lat"] = None
+                item["lon"] = None
+                print(f"[MAP] not found: {item.get('name')}")
+
     items = list(by_id.values())
     items.sort(key=lambda x: x.get("detected_at") or x.get("published_at") or "", reverse=True)
     items = items[:keep]
     stamp = now_jst().strftime("%Y-%m-%d %H:%M")
-    return {"meta":{"last_scan":stamp,"data_updated":stamp,"mode":"live","version":"0.7","source_count":5,"detected_this_scan":len(new_items),"item_count":len(items),"policy":"strict-change-only","history_mode":"deduplicated-history","photos":"disabled-map-first"},"items":items}
+    return {"meta":{"last_scan":stamp,"data_updated":stamp,"mode":"live","version":"0.7.1","source_count":5,"detected_this_scan":len(new_items),"item_count":len(items),"policy":"strict-change-only","history_mode":"deduplicated-history","photos":"disabled-map-first"},"items":items}
 
 def main():
     parser = argparse.ArgumentParser()
@@ -666,7 +720,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    print("NIIGATA RAMEN RADAR collector v0.7")
+    print("NIIGATA RAMEN RADAR collector v0.7.1")
     print("POLICY: CHANGE ONLY")
     new_items = collect()
     result = merge_with_existing(new_items, keep=args.keep)
