@@ -9,3 +9,11 @@
 - app.js / styles.css にバージョン文字列を付け、ブラウザキャッシュで旧版が残る問題を回避
 
 既存履歴を残す場合、data/ramen.json はアップロード不要です。collector.py / app.js / index.html / styles.css を更新し、GitHub Actions を1回実行してください。
+
+
+## v0.7.3
+- カード内地図を「座標取得待ち」方式から廃止。
+- 既存のMAPリンクと同じ検索対象をGoogle Maps埋め込みで即時表示。
+- 緯度・経度の事前取得やOpenStreetMapのジオコーディング待ちは不要。
+- `data/ramen.json` は既存履歴保護のため上書き不要。
+- GitHubへは `app.js`, `styles.css`, `index.html` を上書きすればよい。collector.pyの変更は不要。

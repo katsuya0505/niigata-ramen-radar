@@ -262,3 +262,26 @@ footer strong{display:block;color:#dde7e4;margin-bottom:5px}
 @media(max-width:480px){.period-tabs{width:100%}.period{flex:1;padding:10px 8px}.quick-hero{padding-top:30px}.quick-hero h2{font-size:42px}}
 
 .map-status{position:absolute;left:8px;top:8px;padding:5px 8px;border:1px solid rgba(255,255,255,.18);background:rgba(5,12,10,.86);font-size:9px;letter-spacing:.08em;color:#dce7e3}.map-status.exact{color:#8ff5a6}.map-status.approximate{color:#f4d06f}
+
+
+/* v0.7.3: MAPボタンと同じ検索対象をカード内に常時表示 */
+.card-map.google-map iframe{
+  filter:none;
+  background:#0b1210;
+}
+.card-map .map-open{
+  position:absolute;
+  right:8px;
+  bottom:8px;
+  z-index:3;
+  background:rgba(5,12,10,.90);
+  border:1px solid rgba(255,255,255,.16);
+  color:#e6f0ed;
+  text-decoration:none;
+  font-size:9px;
+  letter-spacing:.04em;
+  padding:6px 8px;
+  border-radius:4px;
+}
+.card-map .map-open:hover{border-color:var(--accent);color:var(--accent)}
+.card-map.google-map .map-status{z-index:3}

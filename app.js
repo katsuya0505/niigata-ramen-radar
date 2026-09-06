@@ -10,33 +10,26 @@ function formatDate(iso){if(!iso)return"日付未確認";const d=new Date(iso);i
 function groupMatches(item,target){if(target==="all")return true;if(target==="opening")return["opening","opening_soon"].includes(item.type);if(target==="change")return["relocation","renewal"].includes(item.type);return item.type===target}
 function withinDays(item,days){const d=itemDate(item); if(d.getTime()===0)return false; const now=new Date(); const start=new Date(now); start.setHours(0,0,0,0); if(days>1)start.setDate(start.getDate()-(days-1)); return d>=start && d<=now}
 function periodItems(){return items.filter(x=>withinDays(x,activeDays))}
-const areaCenters={
-  "新潟市中央区":[37.9162,139.0364],
-  "新潟市東区":[37.9240,139.0920],
-  "新潟市西区":[37.8740,138.9710],
-  "新潟市江南区":[37.8674,139.0930],
-  "新潟市秋葉区":[37.7885,139.1140],
-  "新潟市南区":[37.7651,139.0190],
-  "新潟市北区":[37.9166,139.2190],
-  "新潟市西蒲区":[37.7606,138.8890]
-};
-function osmEmbed(lat,lon,marker=true){
-  const pad=.012;
-  const bbox=`${lon-pad},${lat-pad},${lon+pad},${lat+pad}`;
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik${marker?`&marker=${lat}%2C${lon}`:""}`;
+function mapSearchQuery(item){
+  // MAPボタンが使っている検索語を優先。取得できない場合は店名＋地域で検索する。
+  if(item.map_url){
+    try{
+      const u=new URL(item.map_url);
+      const q=u.searchParams.get("query")||u.searchParams.get("q")||u.searchParams.get("query_place_id");
+      if(q)return q;
+    }catch(e){}
+  }
+  return [item.name,item.area,"新潟県"].filter(Boolean).join(" ");
+}
+function googleMapEmbed(query){
+  // APIキー不要のGoogle Maps埋め込み検索表示。MAPボタンと同じ検索対象をカード内に可視化する。
+  return `https://maps.google.com/maps?hl=ja&q=${encodeURIComponent(query)}&z=15&output=embed`;
 }
 function mapMarkup(item){
-  const hasExact=item.lat!==null&&item.lat!==undefined&&item.lon!==null&&item.lon!==undefined&&Number.isFinite(Number(item.lat))&&Number.isFinite(Number(item.lon));
-  if(hasExact){
-    const lat=Number(item.lat),lon=Number(item.lon),src=osmEmbed(lat,lon,true);
-    return `<div class="card-map"><iframe src="${src}" title="${esc(item.name)} 周辺地図" loading="lazy"></iframe><div class="map-status exact">店舗位置</div><a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></div>`;
-  }
-  const center=areaCenters[item.area];
-  if(center){
-    const [lat,lon]=center,src=osmEmbed(lat,lon,false);
-    return `<div class="card-map"><iframe src="${src}" title="${esc(item.area)} エリア地図" loading="lazy"></iframe><div class="map-status approximate">${esc(item.area)} エリア表示・店舗位置未確認</div><a href="https://www.openstreetmap.org/#map=13/${lat}/${lon}" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></div>`;
-  }
-  return `<div class="card-map map-fallback"><div><span>LOCATION</span><strong>📍 ${esc(item.area)}</strong><small>店舗位置はMAPリンクから確認できます。</small></div></div>`;
+  const query=mapSearchQuery(item);
+  const src=googleMapEmbed(query);
+  const fallbackUrl=item.map_url||`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  return `<div class="card-map google-map"><iframe src="${src}" title="${esc(item.name)} 地図" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><div class="map-status exact">MAP</div><a class="map-open" href="${esc(fallbackUrl)}" target="_blank" rel="noopener noreferrer">大きな地図で見る ↗</a></div>`;
 }
 function render(){const list=periodItems().filter(x=>groupMatches(x,activeFilter));feed.innerHTML="";emptyState.hidden=list.length!==0;list.forEach(item=>{const card=document.createElement("article");card.className="card";const tags=(item.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("");card.innerHTML=`${mapMarkup(item)}<div class="card-top"><span class="badge ${esc(item.type)}">${badgeLabel[item.type]||"INFO"}</span><span class="date">${formatDate(item.detected_at)}</span></div><div><h4>${esc(item.name)}</h4><div class="location">📍 ${esc(item.area)}</div></div><p class="desc">${esc(item.summary)}</p><div class="tags">${tags}</div>${item.source_count?`<div class="radar-evidence">📡 ${item.source_count} SOURCE${item.source_count>1?"S":""} DETECTED · CONFIDENCE ${item.confidence||55}%</div>`:""}<div class="card-actions">${item.source_url?`<a class="link" href="${esc(item.source_url)}" target="_blank" rel="noopener noreferrer">情報源を見る</a>`:""}${item.map_url?`<a class="link secondary" href="${esc(item.map_url)}" target="_blank" rel="noopener noreferrer">MAP</a>`:""}</div>`;feed.appendChild(card)});updateMetrics()}
 function countTypes(list,types){return list.filter(x=>types.includes(x.type)).length}
