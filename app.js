@@ -148,10 +148,10 @@ function startNearbyRadar(){
     nearbyButton?.classList.remove("scanning");
     if(nearbyButton){nearbyButton.disabled=false;nearbyButton.innerHTML='<span class="nearby-ping">◎</span> 現在地を再スキャン';}
   },err=>{
-    const msg = err.code===1 ? "位置情報の利用が許可されていません" : err.code===2 ? "現在地を取得できませんでした" : "位置情報の取得がタイムアウトしました";
+    const msg = err.code===1 ? "位置情報の利用が許可されていません。下のiPhone設定ガイドをご確認ください" : err.code===2 ? "現在地を取得できませんでした。位置情報サービスと通信状態をご確認ください" : "位置情報の取得がタイムアウトしました。もう一度お試しください";
     setNearbyStatus(`SCAN FAILED — ${msg}`, "error");
     nearbyButton?.classList.remove("scanning");
     if(nearbyButton)nearbyButton.disabled=false;
-  },{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+  },{enableHighAccuracy:false,timeout:20000,maximumAge:300000});
 }
 nearbyButton?.addEventListener("click",startNearbyRadar);
